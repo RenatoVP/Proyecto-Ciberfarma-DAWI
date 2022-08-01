@@ -3,8 +3,6 @@ package com.cibertec.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -15,7 +13,7 @@ import lombok.Data;
 public class Usuario {
 	@Id
 	@Column(name = "cod_usua")
-	private int codigo;
+	private Integer codigo;
 	
 	@Column(name = "nom_usua")
 	private String nombre;
@@ -32,13 +30,6 @@ public class Usuario {
 	@Column(name = "fna_usua")
 	private String fecNac;
 	
-	@Column(name = "idtipo")
-	private int idtipo;
-	
-	@ManyToOne
-	@JoinColumn(name = "idtipo", insertable = false, updatable = false)
-	private Tipo tipo;
-	
 	@Column(name = "est_usua")
-	private int estado;
+	private Integer estado;
 }

@@ -1,123 +1,99 @@
 package com.cibertec.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.cibertec.entity.Producto;
-import com.cibertec.repository.ICategoriaRepository;
-import com.cibertec.repository.IProductoRepository;
+import com.cibertec.service.CategoriaServiceImpl;
+import com.cibertec.service.ProductoServiceImpl;
+import com.cibertec.service.ProveedorServiceImpl;
+import com.cibertec.util.ClaseUtil;
 
 @Controller
 @RequestMapping("/producto")
 public class ProductoController {
 
 	@Autowired
-	private IProductoRepository productoRepo;
-
+	private ProductoServiceImpl serviceProducto;
+	
 	@Autowired
-	private ICategoriaRepository categoriaRepo;
-
-	@GetMapping("/agregar")
-	public String cargarForm(Model model) {
-		model.addAttribute("producto", new Producto());
-		model.addAttribute("lstCategoria", categoriaRepo.findAll());
-		return "crudproductos";
+	private CategoriaServiceImpl serviceCategoria;
+	
+	@Autowired
+	private ProveedorServiceImpl serviceProveedor;
+	
+	@ModelAttribute
+	public void setGenericos(Model model) {
+		model.addAttribute("lstcategoria", serviceCategoria.findAll());
+		model.addAttribute("lstproveedor", serviceProveedor.findAll());
 	}
-
-	@PostMapping("/agregar")
-	public String grabarForm(@ModelAttribute(name = "producto") Producto producto, Model model) {
-		model.addAttribute("producto", new Producto());
-		model.addAttribute("lstCategoria", categoriaRepo.findAll());
-		try {
-			productoRepo.save(producto);
-			model.addAttribute("success", "Proceso realizado con exito");
-		} catch (Exception e) {
-			model.addAttribute("error", "Error al registrar");
-		}
-		return "crudproductos";
-	}
-
+	
 	@GetMapping("/listar")
-	public String listar(Model model) {
-		model.addAttribute("lstproducto", productoRepo.findAll());
-		return "listadoproductos";
+	public String listar(Model model, Pageable page) {
+		model.addAttribute("lstproducto", serviceProducto.findAllPagination(page));
+		
+		return "Producto/listaproductos";
 	}
-
-	@GetMapping("/buscaxcategoria")
-	public String listarxCategoria(Model model) {
-		model.addAttribute("lstcategoria", categoriaRepo.findAll());
-		return "consultaproductoxcategoria";
+	
+	@GetMapping("/registrar")
+	public String registrarForm(Producto producto, Model model) {
+		
+		return "Producto/formproducto";
 	}
-
-	@PostMapping("/buscaxcategoria")
-	public String consultaxCategoria(@RequestParam int categoria, Model model) {
-		List<Producto> lstproducto;
-
-		if (categoria == -1) {
-			lstproducto = productoRepo.findAll();
-		} else {
-			lstproducto = productoRepo.findAllByIdcategoria(categoria);
-			;
+	
+	@PostMapping("/registrar")
+	public String registrar(Producto producto, BindingResult result, @RequestParam("archivoImagen") MultipartFile multipart, RedirectAttributes redirect) {
+		//Si se detectan errores de formato al momento de registrar producto
+		if(result.hasErrors()) {
+			for(ObjectError error : result.getAllErrors()) {
+				System.out.println("Ocurrio un error: " + error.getDefaultMessage());
+			}
+			
+			return "redirect:/producto/registrar";
 		}
-
-		model.addAttribute("lstcategoria", categoriaRepo.findAll());
-		model.addAttribute("lstproducto", lstproducto);
-		return "consultaproductoxcategoria";
-	}
-
-	@GetMapping("/buscar")
-	public String buscaProductoForm(Model model) {
-
-		return "consultaproductos";
-	}
-
-	@PostMapping("/buscar")
-	public String buscarProducto(@RequestParam("nombre") String nombre, Model model) {
-		model.addAttribute("lstproducto", productoRepo.findAllByProductName(nombre));
-		return "consultaproductos";
-	}
-
-	@PostMapping("/actualizar")
-	public String actualizar(@ModelAttribute(name = "producto") Producto producto, Model model) {
-		System.out.println(producto);
-		model.addAttribute("producto", productoRepo.findById(producto.getId()));
-		model.addAttribute("lstCategoria", categoriaRepo.findAll());
-		return "crudproductos";
-	}
-
-	@PostMapping("/eliminar")
-	public String eliminar(@ModelAttribute(name = "producto") Producto producto, Model model) {
-		productoRepo.delete(producto);
+		
+		if(!multipart.isEmpty()) {
+			String nombreArchivo = ClaseUtil.saveFile(multipart, "C:/Mis Archivos/Java_Proyects/Spring/CiberfarmaApp_Proyect/Files/images/");
+			
+			//Si la imagen se subio
+			if(nombreArchivo != null) {
+				producto.setImagen(nombreArchivo);
+			}
+		}
+		
+		//Si no hay errores registramos el producto
+		serviceProducto.save(producto);
+		
+		redirect.addFlashAttribute("message", "Se registro el producto satisfactoriamente!");
+		
 		return "redirect:/producto/listar";
 	}
-
-	/* Reporte Views */
-	@GetMapping("/reporte")
-	public String reporteProductoxCategoriayPrecio(Model model) {
-		model.addAttribute("lstcategoria", categoriaRepo.findAll());
-		return "reporteproductoxcategoria";
+	
+	@GetMapping("/editar/{id}")
+	public String editar(@PathVariable("id") String idProducto, Model model) {
+		model.addAttribute("producto", serviceProducto.find(idProducto));
+		
+		return "Producto/formproducto";
 	}
-
-	@PostMapping("/reporte")
-	public String reporteProductoxCategoriayPrecio(@RequestParam int categoria, @RequestParam(defaultValue = "0.0") double precio1,
-			@RequestParam(defaultValue = "0.0") double precio2, Model model) {
-		List<Producto> lstproducto;
+	
+	@GetMapping("/eliminar/{id}")
+	public String eliminar(@PathVariable("id") String idProducto, RedirectAttributes redirect) {
+		serviceProducto.delete(idProducto);
 		
-		if(categoria == -1)
-			lstproducto = productoRepo.findAllByPrecioBetween(precio1, precio2);
-		else
-			lstproducto = productoRepo.findAllByCategoryPriceBetween(categoria, precio1, precio2);
+		redirect.addFlashAttribute("message", "Producto eliminado correctamente!");
 		
-		model.addAttribute("lstcategoria", categoriaRepo.findAll());
-		model.addAttribute("lstproducto", lstproducto);
-		return "reporteproductoxcategoria";
+		return "redirect:/producto/listar";
 	}
 }

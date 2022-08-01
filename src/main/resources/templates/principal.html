@@ -2,84 +2,91 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="ISO-8859-1">
-<title>Ciberfarma</title>
-<link rel="stylesheet"
-	href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
-	integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn"
+<title>Ciberfarma | Aplicacion de Farmacia</title>
+<link rel="icon" type="image/jpg" href="/img/favicon.ico"/>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
 	crossorigin="anonymous">
 </head>
 <body>
-	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-		<a class="navbar-brand" href="#">Ciberfarma</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse"
-			data-target="#navbarSupportedContent"
-			aria-controls="navbarSupportedContent" aria-expanded="false"
-			aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
 
-		<div class="collapse navbar-collapse" id="navbarSupportedContent">
-			<ul class="navbar-nav mr-auto">
-				<li class="nav-item dropdown"><a
-					class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-					role="button" data-toggle="dropdown" aria-expanded="false">
-						Mantenimiento </a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" href="/producto/listar"
-							target="frmPrincipal">Productos</a> <a class="dropdown-item"
-							href="/usuario/listar" target="frmPrincipal">Usuarios</a>
-					</div></li>
-				<li class="nav-item dropdown"><a
-					class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-					role="button" data-toggle="dropdown" aria-expanded="false">
-						Consultas </a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" href="/producto/buscar"
-							target="frmPrincipal">Productos</a>
-					</div></li>
-				<li class="nav-item dropdown"><a
-					class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-					role="button" data-toggle="dropdown" aria-expanded="false">
-						Ventas </a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" href="/boleta/genera"
-							target="frmPrincipal">Generar Boleta</a>
-					</div></li>
-				<li class="nav-item dropdown"><a
-					class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-					role="button" data-toggle="dropdown" aria-expanded="false">
-						Reportes </a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-						<a class="dropdown-item" href="/producto/reporte"
-							target="frmPrincipal">Productos</a>
-					</div></li>
-			</ul>
-			<button class="btn btn-success" th:text="${usuario.nombre}"></button>
+	<header th:insert="fragments/util :: header"></header>
+
+	<section>
+		<img src="/img/bannercib.jpg" class="img-fluid d-block w-100"
+			alt="Ciberfarma banner">
+	</section>
+
+	<section class="p-5">
+		<div class="container">
+		
+			<!-- Mostrar mensajes -->
+			<div th:if="${message != null}" class="alert alert-success" th:text="${message}"></div>
+		
+			<h3>Encuentra lo que estas buscando a los mejores precios</h3>
+			Puedes buscar por descripcion y categoria.
+
+			<!-- Consultar productos -->
+			<form class="row gy-2 gx-3 align-items-center" action="/search#section_productos"
+				method="get" th:object="${search}">
+
+				<div class="col-auto">
+					<label class="col-form-label">Descripcion: </label> <input
+						type="text" th:field="*{descripcion}" class="form-control">
+				</div>
+
+				<!-- Listado de categorias -->
+				<div class="col-auto">
+					<label class="col-form-label">Categoria: </label> <select
+						class="form-control" th:field="*{categoria.id}">
+						<option th:value="${null}">Seleccione una categoria...</option>
+						<option th:each="c : ${lstcategoria}" th:value="${c.id}"
+							th:text="${c.descripcion}"></option>
+					</select>
+				</div>
+
+				<div class="col-auto">
+					<button type="submit" class="btn btn-primary">Buscar</button>
+				</div>
+			</form>
 		</div>
-	</nav>
+	</section>
 
-	<main>
-		<iframe name="frmPrincipal" width="100%" height="560px"></iframe>
-	</main>
+	<!-- Listado de productos -->
+	<section id="section_productos">
+		<div class="container">
+			<h2 class="font-weight-bold text-center text-capitalize">DESTACADOS</h2>
+			
+			<div class="row">
+				<div class="card col-md-4" style="width: 18rem;" th:each="p : ${lstproducto}">
+				<img th:src="@{/producto/imagen/{img} (img=${p.imagen})}"
+					class="card-img-top" alt="${p.descripcion}">
+				<div class="card-body">
+					<h5 class="card-title"><span th:text="${p.descripcion}"></span></h5>
+					<p class="card-text">Categoria: <span th:text="${p.categoria.descripcion}"></span></p>
+					<p class="card-text">Precio: <span th:text="${p.precio}"></span></p>
+					<form action="/carrito/agregar/" method="post">
+						<input type="hidden" name="idproducto" th:value="${p.id}"/>
+						<input class="form-control" type="number" name="cantidad" step="1" min="1" max="99" value="1" />
+						<button class="btn btn-primary" type="submit">Agregar al Carrito</button>
+					</form>
+				</div>
+			</div>
+			</div>
+		</div>
+	</section>
 
 	<footer class="text-center">
 		<p>
-			&copy; Ciberfarma <span th:text="${now}"></span>. All rights
-			reserved.
+			&copy; Ciberfarma <span>2022</span>. All rights reserved.
 		</p>
 	</footer>
 
 	<script
-		src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
-		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-		crossorigin="anonymous"></script>
-	<script
-		src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-		integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-		crossorigin="anonymous"></script>
-	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js"
-		integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2"
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
 		crossorigin="anonymous"></script>
 </body>
 </html>

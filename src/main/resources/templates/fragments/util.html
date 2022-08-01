@@ -1,0 +1,37 @@
+<nav th:fragment="header"
+	class="navbar navbar-expand-lg navbar-dark bg-dark">
+	<a class="navbar-brand" href="/">Ciberfarma</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse"
+		data-target="#navbarSupportedContent"
+		aria-controls="navbarSupportedContent" aria-expanded="false"
+		aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+			<li class="nav-item" sec:authorize="hasAnyAuthority('administrativo')"><a class="nav-link" href="/producto/listar">Productos</a></li>
+
+			<li class="nav-item" sec:authorize="hasAnyAuthority('administrativo')"><a class="nav-link" href="/categoria/listar">Categorias</a></li>
+
+			<li class="nav-item" sec:authorize="hasAnyAuthority('administrativo')"><a class="nav-link" href="/usuario/listar">Usuarios</a></li>
+			
+			<li class="nav-item" sec:authorize="hasAnyAuthority('administrativo')"><a class="nav-link" href="/proveedor/listar">Proveedores</a></li>
+		</ul>
+		
+		<a class="btn btn-primary" href="/carrito/">Carrito</a>&nbsp;
+		
+		<!-- Si el usuario no ha ingresado session, mostrar botones -->
+		<div sec:authorize="isAnonymous()">
+			<a class="btn btn-primary" href="/login">Ingresar</a>&nbsp; 
+			<a class="btn btn-primary" href="/signup">Registrarse</a>&nbsp;
+		</div>
+
+		<!-- Si el usuario ha ingresado session, mostrar -->
+		<div sec:authorize="isAuthenticated()">
+			<span class="text-light">Bienvenido &nbsp;</span><span
+				class="text-light" sec:authentication="name"></span> <a
+				class="btn btn-primary" href="/logout">Salir</a>
+		</div>
+	</div>
+</nav>

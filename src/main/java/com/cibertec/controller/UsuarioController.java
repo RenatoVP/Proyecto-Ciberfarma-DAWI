@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.cibertec.entity.Usuario;
 import com.cibertec.repository.ITipoRepository;
 import com.cibertec.repository.IUsuarioRepository;
+import com.cibertec.service.UsuarioServiceImpl;
 
 @Controller
 @RequestMapping("/usuario")
@@ -21,24 +23,11 @@ public class UsuarioController {
 	private ITipoRepository tipoRepo;
 	
 	@Autowired
-	private IUsuarioRepository usuarioRepo;
-	
-	@GetMapping("/login")
-	public String login(Model model) {
-		model.addAttribute("usuario", new Usuario());
-		return "login";
-	}
-	
-	@PostMapping("/validar")
-	public String validar(@ModelAttribute(name="usuario") Usuario usuario, RedirectAttributes redirect) {
-		Usuario data = usuarioRepo.findByUsernameAndContrasena(usuario.getUsername(), usuario.getContrasena());
-		redirect.addFlashAttribute("usuario", data);
-		return "redirect:/";
-	}
+	private UsuarioServiceImpl serviceUsuario;
 	
 	@GetMapping("/listar")
 	public String lista(Model model) {
-		model.addAttribute("lstusuario", usuarioRepo.findAll());
+		model.addAttribute("lstusuario", serviceUsuario.findAll());
 		return "Usuario/listadousuarios";
 	}
 	
@@ -52,10 +41,19 @@ public class UsuarioController {
 	@PostMapping("/agregar")
 	public String grabarForm(@ModelAttribute Usuario usuario, Model model) {
 		try {
-			usuarioRepo.save(usuario);
+			serviceUsuario.save(usuario);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return "redirect:/usuario/listar";
+	}
+	
+	@GetMapping("/eliminar/{id}")
+	public String eliminar(@PathVariable("id") Integer idUsuario, RedirectAttributes redirect) {
+		serviceUsuario.delete(idUsuario);
+		
+		redirect.addFlashAttribute("message", "Usuario eliminado correctamente!");
+		
 		return "redirect:/usuario/listar";
 	}
 }

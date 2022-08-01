@@ -3,9 +3,9 @@ package com.cibertec.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.cibertec.entity.Usuario;
+import com.cibertec.entity.Compra;
 
 @Repository
-public interface IUsuarioRepository extends JpaRepository<Usuario, Integer> {
-	Usuario findByUsername(String username);
+public interface CompraRepository extends JpaRepository<Compra, Integer> {
+
 }

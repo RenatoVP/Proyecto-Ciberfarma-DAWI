@@ -13,6 +13,6 @@ import lombok.Data;
 public class Tipo {
 	@Id
 	@Column(name = "idtipo")
-	private int id;
+	private Integer id;
 	private String descripcion;
 }
